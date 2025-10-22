@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plumbing Codebook – Email Confirmed</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #d9e0f0;
+        --text: #0f172a;
+        --muted: #475569;
+        --accent: #3b82f6;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      main {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 32px;
+        max-width: 420px;
+        width: 100%;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 26px;
+      }
+
+      p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      button,
+      a.deep-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+      }
+
+      button {
+        background: var(--accent);
+        color: #ffffff;
+        width: 100%;
+      }
+
+      button.secondary {
+        margin-top: 12px;
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--accent);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      code {
+        background: rgba(15, 23, 42, 0.05);
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      footer {
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>All set!</h1>
+      <p>
+        Your email is confirmed. Open Plumbing Codebook on your device to finish signing in.
+        We can hand the session back to the app for you if it is installed.
+      </p>
+
+      <button id="open-app">Return to the app</button>
+      <button id="copy-link" class="secondary">Copy link instead</button>
+
+      <p id="copy-feedback" class="hidden">Link copied. Paste it into your device’s browser to continue.</p>
+
+      <footer>
+        Having trouble? Make sure the app is installed and try opening the link manually:
+        <code id="deep-link-preview">plumbingcodebook://auth/callback</code>
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        const DEEP_LINK_BASE = "plumbingcodebook://auth/callback";
+        const openButton = document.getElementById("open-app");
+        const copyButton = document.getElementById("copy-link");
+        const copyFeedback = document.getElementById("copy-feedback");
+        const linkPreview = document.getElementById("deep-link-preview");
+
+        function parseParams() {
+          const params = new URLSearchParams(window.location.search);
+
+          if (!params.size && window.location.hash.startsWith("#")) {
+            const hashParams = new URLSearchParams(window.location.hash.slice(1));
+            hashParams.forEach((value, key) => {
+              if (!params.has(key)) {
+                params.set(key, value);
+              }
+            });
+          }
+
+          return params;
+        }
+
+        function buildDeepLink() {
+          const params = parseParams();
+          if (!params.size) {
+            return DEEP_LINK_BASE;
+          }
+          return `${DEEP_LINK_BASE}?${params.toString()}`;
+        }
+
+        const deepLink = buildDeepLink();
+        linkPreview.textContent = deepLink;
+
+        openButton.addEventListener("click", () => {
+          window.location.href = deepLink;
+        });
+
+        copyButton.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(deepLink);
+            copyFeedback.classList.remove("hidden");
+          } catch (_error) {
+            copyFeedback.textContent = "Copy failed. Select the link above and copy it manually.";
+            copyFeedback.classList.remove("hidden");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
